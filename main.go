@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"main/config"
 	"main/database"
 	"main/model"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/gorilla/mux"
@@ -25,12 +28,37 @@ func getTours(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tours)
 }
 
+// getTour returns tour by given ID
+func getTour(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		log.Fatalf("Converting process is failed: %s", err)
+	}
+
+	fmt.Printf("Look at the tour with ID: %d", id)
+	tour, err := model.GetTour(db, id)
+	if err != nil && err.Error() != "pg: no rows in result set" {
+		log.Fatalf("GetTour: %s", err)
+	}
+	json.NewEncoder(w).Encode(tour)
+}
+
 // handleRequests manages requests
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/tours", getTours)
+	router.HandleFunc("/tours/{id:[0-9]+}/", getTour)
 
-	log.Fatal(http.ListenAndServe(":10000", router))
+	srv := &http.Server{
+		Addr:         "0.0.0.0:10000",
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      router,
+	}
+	fmt.Println("\nServer is running ... ")
+	log.Fatal(srv.ListenAndServe())
 }
 
 func init() {

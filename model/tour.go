@@ -21,3 +21,9 @@ func GetTours(db *pg.DB) ([]Tour, error) {
 	err := db.Model(&tours).Order("id ASC").Limit(20).Select()
 	return tours, err
 }
+
+func GetTour(db *pg.DB, id int) (Tour, error) {
+	tour := Tour{}
+	err := db.Model(&tour).Where("id = ?", id).Select()
+	return tour, err
+}
