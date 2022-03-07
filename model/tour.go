@@ -27,3 +27,8 @@ func GetTour(db *pg.DB, id int) (Tour, error) {
 	err := db.Model(&tour).Where("id = ?", id).Select()
 	return tour, err
 }
+
+func CreateTour(db *pg.DB, tour Tour) error {
+	_, err := db.Model(&tour).Insert()
+	return err
+}

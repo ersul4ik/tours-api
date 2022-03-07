@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"main/config"
 	"main/database"
@@ -28,6 +29,29 @@ func getTours(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tours)
 }
 
+// createTour allow to create a tour instance
+func createTour(w http.ResponseWriter, r *http.Request) {
+	var tour model.Tour
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("readAll error")
+		panic(err)
+	}
+
+	err = json.Unmarshal(body, &tour)
+	if err != nil {
+		fmt.Println("Unmarshal error")
+		panic(err)
+	}
+
+	json.NewEncoder(w).Encode(tour)
+	err = model.CreateTour(db, tour)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // getTour returns tour by given ID
 func getTour(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -47,7 +71,8 @@ func getTour(w http.ResponseWriter, r *http.Request) {
 // handleRequests manages requests
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/tours", getTours)
+	router.HandleFunc("/tours/", getTours).Methods("GET")
+	router.HandleFunc("/tours/", createTour).Methods("POST")
 	router.HandleFunc("/tours/{id:[0-9]+}/", getTour)
 
 	srv := &http.Server{
