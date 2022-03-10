@@ -82,14 +82,14 @@ func handleRequests() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      router,
 	}
-	fmt.Println("\nServer is running ... ")
+	log.Println("\nServer is running ... ")
 	log.Fatal(srv.ListenAndServe())
 }
 
 func init() {
 	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		log.Fatal("No .env file found")
 	}
 }
 
