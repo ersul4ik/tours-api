@@ -28,7 +28,10 @@ func GetTour(db *pg.DB, id int) (Tour, error) {
 	return tour, err
 }
 
-func CreateTour(db *pg.DB, tour Tour) error {
-	_, err := db.Model(&tour).Insert()
+func CreateOrUpdate(db *pg.DB, tour Tour) error {
+	fmt.Printf("ID: %d", tour.Id)
+	_, err := db.Model(&tour).
+		OnConflict("(id) DO UPDATE").
+		Insert()
 	return err
 }

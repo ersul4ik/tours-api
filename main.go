@@ -46,9 +46,9 @@ func createTour(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(tour)
-	err = model.CreateTour(db, tour)
+	err = model.CreateOrUpdate(db, tour)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error during creating the tour. err: %s", err)
 	}
 }
 
