@@ -11,3 +11,10 @@ The API provides ability to create/read/delete tour entries
 
 ### Goal
 There is only one reason - is education. There will be a good way to learn Go :D
+
+### Tasks
+
+- [x] Design database tables
+- [x] Create the API
+- [ ] Add db migration tool
+- [ ] Add a created time as a column for the all tables.
