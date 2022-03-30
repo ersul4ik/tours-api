@@ -6,18 +6,18 @@ import (
 	"io/ioutil"
 	"log"
 	"main/config"
-	"main/database"
 	"main/model"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/go-pg/pg/v10"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var db *pg.DB
+var db *gorm.DB
 
 // getTours returns tours existing in DB
 func getTours(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func createTour(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(tour)
-	err = model.CreateOrUpdate(db, tour)
+	err = model.Create(db, tour)
 	if err != nil {
 		log.Fatalf("Error during creating the tour. err: %s", err)
 	}
@@ -62,9 +62,10 @@ func getTour(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Look at the tour with ID: %d", id)
 	tour, err := model.GetTour(db, id)
-	if err != nil && err.Error() != "pg: no rows in result set" {
+	if err != nil {
 		log.Fatalf("GetTour: %s", err)
 	}
+
 	json.NewEncoder(w).Encode(tour)
 }
 
@@ -95,18 +96,12 @@ func init() {
 
 func main() {
 	conf := config.New()
-	opt, err := pg.ParseURL(conf.DATABASE_URL)
+	database, err := gorm.Open(postgres.Open(conf.DATABASE_URL), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		panic("failed to connect database")
 	}
 
-	db = pg.Connect(opt)
-	defer db.Close()
-
-	err = database.CreateSchema(db)
-	if err != nil {
-		panic(err)
-	}
-
+	database.AutoMigrate(&model.Tour{})
+	db = database
 	handleRequests()
 }

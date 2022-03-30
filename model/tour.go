@@ -2,36 +2,36 @@ package model
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/go-pg/pg/v10"
+	"gorm.io/gorm"
 )
 
 type Tour struct {
-	Id      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Id          int       `json:"id"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	DepartureAt time.Time `json:"departure_at"`
 }
 
 func (u Tour) String() string {
 	return fmt.Sprintf("Tour<%d %s>", u.Id, u.Title)
 }
 
-func GetTours(db *pg.DB) ([]Tour, error) {
-	var tours []Tour
-	err := db.Model(&tours).Order("id ASC").Limit(20).Select()
-	return tours, err
+func GetTours(db *gorm.DB) ([]Tour, error) {
+	tours := []Tour{}
+	result := db.Find(&tours)
+	return tours, result.Error
 }
 
-func GetTour(db *pg.DB, id int) (Tour, error) {
+func GetTour(db *gorm.DB, id int) (Tour, error) {
 	tour := Tour{}
-	err := db.Model(&tour).Where("id = ?", id).Select()
-	return tour, err
+	result := db.First(&tour, "id = ?", id)
+	return tour, result.Error
 }
 
-func CreateOrUpdate(db *pg.DB, tour Tour) error {
+func Create(db *gorm.DB, tour Tour) error {
 	fmt.Printf("ID: %d", tour.Id)
-	_, err := db.Model(&tour).
-		OnConflict("(id) DO UPDATE").
-		Insert()
-	return err
+	result := db.Create(&tour)
+	return result.Error
 }
