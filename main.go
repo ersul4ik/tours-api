@@ -44,7 +44,6 @@ func createTour(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Unmarshal error")
 		panic(err)
 	}
-
 	json.NewEncoder(w).Encode(tour)
 	err = model.Create(db, tour)
 	if err != nil {
