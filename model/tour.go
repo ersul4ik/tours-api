@@ -30,7 +30,7 @@ func GetTour(db *gorm.DB, id int) (Tour, error) {
 	return tour, result.Error
 }
 
-func Create(db *gorm.DB, tour Tour) error {
+func CreateTour(db *gorm.DB, tour Tour) error {
 	fmt.Printf("ID: %d", tour.Id)
 	result := db.Create(&tour)
 	return result.Error

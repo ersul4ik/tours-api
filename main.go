@@ -45,7 +45,7 @@ func createTour(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	json.NewEncoder(w).Encode(tour)
-	err = model.Create(db, tour)
+	err = model.CreateTour(db, tour)
 	if err != nil {
 		log.Fatalf("Error during creating the tour. err: %s", err)
 	}
@@ -68,21 +68,58 @@ func getTour(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tour)
 }
 
+// getTour returns tour by given ID
+func getOrders(w http.ResponseWriter, r *http.Request) {
+	log.Print("GetOrders: request is receiving")
+
+	orders, err := model.GetOrders(db)
+	if err != nil {
+		log.Fatalf("GetOrders: %s", err)
+	}
+
+	json.NewEncoder(w).Encode(orders)
+}
+
+func createOrder(w http.ResponseWriter, r *http.Request) {
+	var order model.Order
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("readAll error")
+		panic(err)
+	}
+
+	err = json.Unmarshal(body, &order)
+	if err != nil {
+		fmt.Println("Unmarshal error")
+		panic(err)
+	}
+	err = model.CreateOrder(db, order)
+	if err != nil {
+		log.Fatalf("Error during creating the order. err: %s", err)
+		return
+	}
+	json.NewEncoder(w).Encode(order)
+}
+
 // handleRequests manages requests
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/tours/", getTours).Methods("GET")
 	router.HandleFunc("/tours/", createTour).Methods("POST")
 	router.HandleFunc("/tours/{id:[0-9]+}/", getTour)
+	router.HandleFunc("/orders/", getOrders).Methods("GET")
+	router.HandleFunc("/orders/", createOrder).Methods("POST")
 
+	host := "0.0.0.0:10000"
 	srv := &http.Server{
-		Addr:         "0.0.0.0:10000",
+		Addr:         host,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 		Handler:      router,
 	}
-	log.Println("\nServer is running ... ")
+	log.Printf("\nServer is running:  %s", host)
 	log.Fatal(srv.ListenAndServe())
 }
 
@@ -101,6 +138,7 @@ func main() {
 	}
 
 	database.AutoMigrate(&model.Tour{})
+	database.AutoMigrate(&model.Order{})
 	db = database
 	handleRequests()
 }
