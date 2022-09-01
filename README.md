@@ -16,5 +16,7 @@ There is only one reason - is education. There will be a good way to learn Go :D
 
 - [x] Design database tables
 - [x] Create the API
-- [ ] Add db migration tool
-- [ ] Add a created time as a column for the all tables.
+- [x] Add db migration tool
+- [x] Add a created time as a column for the all tables.
+- [ ] Add an API validation before trying to create DB records
+- [ ] DON'T have "Alter table" feature (as a column changed I have to drop the table) 
