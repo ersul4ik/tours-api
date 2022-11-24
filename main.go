@@ -8,9 +8,11 @@ import (
 	"main/config"
 	"main/model"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -35,19 +37,20 @@ func createTour(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("readAll error")
-		panic(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	err = json.Unmarshal(body, &tour)
 	if err != nil {
-		fmt.Println("Unmarshal error")
-		panic(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	json.NewEncoder(w).Encode(tour)
 	err = model.CreateTour(db, tour)
 	if err != nil {
-		log.Fatalf("Error during creating the tour. err: %s", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 }
 
@@ -70,8 +73,6 @@ func getTour(w http.ResponseWriter, r *http.Request) {
 
 // getTour returns tour by given ID
 func getOrders(w http.ResponseWriter, r *http.Request) {
-	log.Print("GetOrders: request is receiving")
-
 	orders, err := model.GetOrders(db)
 	if err != nil {
 		log.Fatalf("GetOrders: %s", err)
@@ -85,18 +86,19 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("readAll error")
-		panic(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	err = json.Unmarshal(body, &order)
 	if err != nil {
-		fmt.Println("Unmarshal error")
-		panic(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
 	err = model.CreateOrder(db, order)
 	if err != nil {
-		log.Fatalf("Error during creating the order. err: %s", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	json.NewEncoder(w).Encode(order)
@@ -110,6 +112,8 @@ func handleRequests() {
 	router.HandleFunc("/tours/{id:[0-9]+}/", getTour)
 	router.HandleFunc("/orders/", getOrders).Methods("GET")
 	router.HandleFunc("/orders/", createOrder).Methods("POST")
+
+	router.Use(func(next http.Handler) http.Handler { return handlers.LoggingHandler(os.Stdout, next) })
 
 	host := "0.0.0.0:10000"
 	srv := &http.Server{
