@@ -18,5 +18,7 @@ There is only one reason - is education. There will be a good way to learn Go :D
 - [x] Create the API
 - [x] Add db migration tool
 - [x] Add a created time as a column for the all tables.
-- [ ] Add an API validation before trying to create DB records
-- [ ] DON'T have "Alter table" feature (as a column changed I have to drop the table) 
+- [x] Add an API validation before trying to create DB records
+- [x] DON'T have "Alter table" feature (as a column changed I have to drop the table) 
+- [ ] Create API tests
+- [ ] Add API Spec
